@@ -18,6 +18,7 @@
   "bugs": {
     "url": "https://github.com/IschanLois/es-rpcgen/issues"
   },
+  "type": "module",
   "homepage": "https://github.com/IschanLois/es-rpcgen#readme",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
