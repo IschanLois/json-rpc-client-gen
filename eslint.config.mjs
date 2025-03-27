@@ -19,6 +19,7 @@ export default [
         ignoreGlobals: true,
       }],
     },
+    '@typescript-eslint/no-unsafe-function-type': 'allow',
   },
   { languageOptions: { globals: globals.node } },
   pluginJs.configs.recommended,

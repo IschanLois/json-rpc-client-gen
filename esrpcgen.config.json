@@ -1,3 +1,3 @@
 {
-  "test": "test"
+  "source": "./dist/functions.js"
 }

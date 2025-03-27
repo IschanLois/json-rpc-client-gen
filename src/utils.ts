@@ -5,7 +5,7 @@ import type { Config } from './types.js'
 export const CONFIG_FILE = 'esrpcgen.config.json'
 export const CWD: string = process.cwd()
 
-const configHelper = (directory: string): Config => {
+const configHelper = (directory: string): { path: string, config: Config } => {
   const parsedPath = path.parse(directory)
 
   if (directory == parsedPath.root) {
@@ -15,7 +15,9 @@ const configHelper = (directory: string): Config => {
   const file = path.join(directory, CONFIG_FILE)
 
   try {
-    return JSON.parse(readFileSync(file, 'utf-8'))
+    const config = JSON.parse(readFileSync(file, 'utf-8'))
+
+    return { config, path: directory }
   } catch (err: unknown) {
     if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
       configHelper(path.join(path.normalize(directory), '..'))
@@ -25,4 +27,4 @@ const configHelper = (directory: string): Config => {
   }
 }
 
-export const readConfigFile = (): Config => configHelper(CWD)
+export const readConfigFile = () => configHelper(CWD)
