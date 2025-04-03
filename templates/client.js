@@ -1,3 +1,3 @@
-import { add } from './client-stubs.js'
+import stub from './client-stub.js'
 
-console.log(add(1, 2))
+console.log(await stub.add(1, 2))
