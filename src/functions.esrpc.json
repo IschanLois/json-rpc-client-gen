@@ -1,0 +1,16 @@
+{
+  "add": {
+    "parameters": {
+      "a": "number",
+      "b": "number"
+    },
+    "returnType": "number"
+  },
+  "subtract": {
+    "parameters": {
+      "a": "number",
+      "b": "number"
+    },
+    "returnType": "number"
+  }
+}

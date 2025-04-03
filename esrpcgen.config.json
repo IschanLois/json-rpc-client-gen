@@ -1,3 +1,3 @@
 {
-  "source": "./dist/functions.js"
+  "source": "./src/functions.esrpc.json"
 }
