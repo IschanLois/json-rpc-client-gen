@@ -3,6 +3,18 @@ import { createServer } from 'node:net'
 const functions = {
   add({ a, b }) {
     return a + b
+  },
+
+  subtract({ a, b }) {
+    return a - b
+  },
+
+  todos(ids) {
+    return [
+      { id: 1, title: 'Learn Node.js' },
+      { id: 2, title: 'Learn JavaScript' },
+      { id: 3, title: 'Learn TypeScript' },
+    ]
   }
 }
 

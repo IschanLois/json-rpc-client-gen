@@ -12,5 +12,11 @@
       "b": "number"
     },
     "returnType": "number"
+  },
+  "todos": {
+    "parameters": {
+      "ids": "number[]"
+    },
+    "returnType": "number[]"
   }
 }
