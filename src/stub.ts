@@ -1,117 +1,44 @@
 import { writeFile } from 'node:fs'
 
+import { getTcpTemplate } from './templates/tcp.js'
 import type { Config, ConfigFunctionSignature } from './types.js'
 
 const DEFAULT_TIMEOUT = 5000
+
+const appendMethod = (
+  currentMethodsString: string,
+  functionName: string,
+  parameters: string[],
+): string => {
+  const stringParams: string = parameters.join(', ')
+
+  return `${currentMethodsString}
+
+  ${functionName}(${stringParams}) {
+    return this.#sendRequest('${functionName}', { ${stringParams} })
+  }`
+}
 
 export const generateClientStub = ({
   timeout,
   host,
   port,
-}: Partial<Config>,
+}: Config,
   target: string,
   functions: ConfigFunctionSignature,
 ): void => {
 
-const methods: string = Object
-  .entries(functions)
-  .reduce((prev, cur): string => {
-    const [name, { parameters }] = cur
-    const stringParams: string = Object
-      .keys(parameters)
-      .join(', ')
+  const methods: string = Object
+    .entries(functions)
+    .reduce((prev, cur): string => {
+      const [name, { parameters }] = cur
+      return appendMethod(prev, name, parameters)
+    }, '')
+    .trimStart()
 
-    return `
-  ${prev}
+  const userTimeout = timeout !== undefined ? timeout : DEFAULT_TIMEOUT
 
-  ${name}(${stringParams}) {
-    return this.#sendRequest('${name}', { ${stringParams} })
-  }
-    `
-  }, '')
-  .trimStart()
-
-const userTimeout = timeout ? timeout : (timeout === 0 ? null : DEFAULT_TIMEOUT)
-
-// TODO: add data buffering
-// TODO: add authentication
-// TODO: add TLS support
-const template = `// code-generated file - es-rpcgen
-
-import EventEmitter from 'node:events'
-import { connect } from 'node:net'
-
-const userTimeout = ${userTimeout}
-
-const createTimeout = (socket) => {
-  if (userTimeout) {
-    return setTimeout(() => {
-      socket.destroy()
-    }, 5000)
-  }
-
-  return null
-}
-
-class Stub extends EventEmitter {
-
-  #socket = null
-  #timeout = null
-
-  async #sendRequest(method, parameters) {
-    if (!this.#socket || this.#socket.destroyed) {
-      await this.connect()
-    }
-
-    if (this.#timeout) {
-      clearTimeout(this.#timeout)
-    }
-    
-    return new Promise((resolve) => {
-      this.#socket.on('data', (data) => {
-        const { returnValue } = JSON.parse(data.toString())
-        resolve(returnValue)
-      })
-  
-      this.#socket.write(\`\${JSON.stringify({ method, parameters })}\n\`)
-      this.#timeout = createTimeout(this.#socket)
-    })
-  }
-
-  async connect() {
-    this.#socket = connect({ host: '${host}', port: ${port} })
-
-    this.#socket.once('error', (error) => {
-      console.error(error.message)
-      socket.destroy()
-      process.exit()
-    })
-
-    await new Promise((resolve) => {
-      this.#socket.once('connect', () => {
-        this.emit('connect')
-        this.#timeout = createTimeout(this.#socket)
-        resolve()
-      })
-    })
-  }
-
-  close() {
-    if (this.#socket || !this.#socket.destroyed) {
-      return
-    }
-
-    this.#socket.destroy()
-    this.emit('close')
-  }
-
-  ${methods}
-}
-
-const clientStub = new Stub()
-
-export default clientStub
-`
+  const template = getTcpTemplate({ host, port, timeout: userTimeout }, methods)
 
   writeFile(target, template, (err) => {
     if (err) {

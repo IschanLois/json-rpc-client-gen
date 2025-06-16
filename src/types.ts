@@ -8,10 +8,6 @@ export interface Config {
 
 export interface ConfigFunctionSignature {
   [key: string]: {
-    parameters: ConfigParameter
-    returnType: string
+    parameters: string[]
   }
-}
-export interface ConfigParameter {
-  [key: string]: 'number' | 'string' | 'boolean' | 'bigint'
 }

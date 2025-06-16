@@ -10,17 +10,16 @@ const functionsFile = isAbsolute(config.source) ? config.source : join(path, nor
 
 const functions: ConfigFunctionSignature = JSON.parse(readFileSync(functionsFile, 'utf-8'))
 
-if (functions !== Object(functions) && !Array.isArray(functions)) {
+if (functions !== Object(functions) || Array.isArray(functions)) {
   throw new Error('Invalid functions file configuration')
 }
 
-Object.keys(functions).map((name) => {
+Object.keys(functions).forEach((name) => {
   const signature = functions[name]
 
   if (
-    Object.keys(signature).length !== 2
+    Object.keys(signature).length !== 1
     || !('parameters' in signature)
-    || !('returnType' in signature)
   ) {
     throw new Error(`Invalid function signature for ${name}`)
   }
@@ -32,4 +31,4 @@ const targetFile = join(
   'index.js',
 )
 
-generateClientStub({ ...config }, targetFile, functions)
+generateClientStub(config, targetFile, functions)

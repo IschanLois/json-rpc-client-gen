@@ -1,22 +1,11 @@
 {
   "add": {
-    "parameters": {
-      "a": "number",
-      "b": "number"
-    },
-    "returnType": "number"
+    "parameters": ["a", "b"]
   },
   "subtract": {
-    "parameters": {
-      "a": "number",
-      "b": "number"
-    },
-    "returnType": "number"
+    "parameters": ["a", "b"]
   },
   "todos": {
-    "parameters": {
-      "ids": "number[]"
-    },
-    "returnType": "number[]"
+    "parameters": ["ids"]
   }
 }

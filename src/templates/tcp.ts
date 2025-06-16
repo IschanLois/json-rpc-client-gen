@@ -1,15 +1,23 @@
-// code-generated file - es-rpcgen
+export interface TcpConfig {
+  host: string
+  port: number
+  timeout?: number
+}
 
+// TODO: add data buffering
+// TODO: add authentication
+// TODO: add TLS support
+export const getTcpTemplate = (config: TcpConfig, methods: string): string => `// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-const userTimeout = 2000
+const userTimeout = ${config.timeout}
 
 const createTimeout = (socket) => {
   if (userTimeout) {
     return setTimeout(() => {
       socket.destroy()
-    }, 5000)
+    }, ${config.timeout})
   }
 
   return null
@@ -35,55 +43,47 @@ class Stub extends EventEmitter {
         resolve(returnValue)
       })
   
-      this.#socket.write(`${JSON.stringify({ method, parameters })}
-`)
+      this.#socket.write(\`\${JSON.stringify({ method, parameters })}\\n\`)
       this.#timeout = createTimeout(this.#socket)
     })
   }
 
   async connect() {
-    this.#socket = connect({ host: '127.0.0.1', port: 25 })
+    this.#socket = connect({ host: '${config.host}', port: ${config.port} })
 
     this.#socket.once('error', (error) => {
       console.error(error.message)
-      socket.destroy()
+      this.#socket.destroy()
       process.exit()
     })
 
     await new Promise((resolve) => {
       this.#socket.once('connect', () => {
-        this.emit('connect')
         this.#timeout = createTimeout(this.#socket)
+        this.emit('connect')
         resolve()
       })
     })
   }
 
   close() {
-    if (this.#socket || !this.#socket.destroyed) {
+    if (!this.#socket || this.#socket.destroyed) {
       return
+    }
+
+    if (this.#timeout) {
+      clearTimeout(this.#timeout)
+      this.#timeout = null
     }
 
     this.#socket.destroy()
     this.emit('close')
   }
 
-  add(a, b) {
-    return this.#sendRequest('add', { a, b })
-  }
-    
-
-  subtract(a, b) {
-    return this.#sendRequest('subtract', { a, b })
-  }
-    
-
-  todos(ids) {
-    return this.#sendRequest('todos', { ids })
-  }
-    
+  ${methods}
 }
 
 const clientStub = new Stub()
 
 export default clientStub
+`
