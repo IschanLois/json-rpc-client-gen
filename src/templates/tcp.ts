@@ -4,8 +4,6 @@ export interface TcpConfig {
   timeout?: number
 }
 
-// TODO: add data buffering
-// TODO: add authentication
 // TODO: add TLS support
 export const getTcpTemplate = (config: TcpConfig, methods: string): string => `// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
