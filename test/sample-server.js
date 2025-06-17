@@ -24,10 +24,10 @@ createServer((socket) => {
   socket.on('data', (data) => {
     console.log(`Received: ${data}`)
 
-    const { method, parameters } = JSON.parse(data.toString())
-    const returnValue = functions[method](parameters)
+    const { method, params, id } = JSON.parse(data.toString())
+    const result = functions[method](params)
 
-    socket.write(`${JSON.stringify({ method, returnValue })}\n`)
+    socket.write(`${JSON.stringify({ method, result, id })}\n`)
   })
 
   socket.on('end', () => {
