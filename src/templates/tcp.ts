@@ -117,13 +117,13 @@ class Stub extends EventEmitter {
   }
 
   close() {
-    if (!this.#socket || this.#socket.destroyed) {
-      return
-    }
-
     if (this.#timeout) {
       clearTimeout(this.#timeout)
       this.#timeout = null
+    }
+
+    if (!this.#socket || this.#socket.destroyed) {
+      return
     }
 
     this.#socket.destroy()
