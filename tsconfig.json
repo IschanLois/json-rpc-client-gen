@@ -8,6 +8,6 @@
     "noImplicitAny": true,
     "types": ["node"],
   },
-  "include": ["src/**/*.ts", "test/client.js", "templates/sample-server.ts"],
+  "include": ["src/**/*.ts", "examples/**/*.js"],
   "exclude": ["./**/*.js"]
 }
