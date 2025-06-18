@@ -4,6 +4,7 @@ import { getTcpTemplate } from './templates/tcp.js'
 import type { Config, ConfigFunctionSignature } from './types.js'
 
 const DEFAULT_TIMEOUT = 5000
+const DEFAULT_VERSION = '2.0'
 
 const appendMethod = (
   currentMethodsString: string,
@@ -19,10 +20,12 @@ const appendMethod = (
   }`
 }
 
+// TODO: add TLS support
 export const generateClientStub = ({
-  timeout,
   host,
   port,
+  timeout = DEFAULT_TIMEOUT,
+  version = DEFAULT_VERSION,
 }: Config,
   target: string,
   functions: ConfigFunctionSignature,
@@ -36,9 +39,12 @@ export const generateClientStub = ({
     }, '')
     .trimStart()
 
-  const userTimeout = timeout !== undefined ? timeout : DEFAULT_TIMEOUT
-
-  const template = getTcpTemplate({ host, port, timeout: userTimeout }, methods)
+  const template = getTcpTemplate({
+    host,
+    port,
+    timeout,
+    version,
+  }, methods)
 
   writeFile(target, template, (err) => {
     if (err) {

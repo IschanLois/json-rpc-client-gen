@@ -3,6 +3,7 @@ export interface Config {
   host: string
   port: number
   targetDir: string
+  version?: '1.0' | '2.0'
   timeout?: number
 }
 

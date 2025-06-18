@@ -15,9 +15,7 @@ const createTimeout = (socket) => {
   return null
 }
 
-// TODO batching -> array of request objects stub batching
 // TODO embed throttling using max requests for a given time
-// TODO versions
 class Stub extends EventEmitter {
 
   #socket = null

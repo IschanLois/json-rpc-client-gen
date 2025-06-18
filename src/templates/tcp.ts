@@ -1,16 +1,16 @@
 export interface TcpConfig {
   host: string
   port: number
-  timeout?: number
+  version: '1.0' | '2.0'
+  timeout: number
 }
 
-// TODO: add TLS support
 export const getTcpTemplate = (config: TcpConfig, methods: string): string => `// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
 const USER_TIMEOUT = ${config.timeout}
-const VERSION = '2.0'
+const VERSION = '${config.version}'
 
 const createTimeout = (socket) => {
   if (USER_TIMEOUT) {
@@ -22,9 +22,7 @@ const createTimeout = (socket) => {
   return null
 }
 
-// TODO batching -> array of request objects stub batching
 // TODO embed throttling using max requests for a given time
-// TODO versions
 class Stub extends EventEmitter {
 
   #socket = null

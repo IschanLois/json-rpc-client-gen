@@ -3,5 +3,6 @@
   "targetDir": "./test/client-stub",
   "host": "127.0.0.1",
   "port": 25,
-  "timeout": 2500
+  "timeout": 2500,
+  "version": "2.0"
 }

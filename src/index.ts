@@ -7,7 +7,6 @@ import type { ConfigFunctionSignature } from './types.js'
 
 const { path, config } = readConfigFile()
 const functionsFile = isAbsolute(config.source) ? config.source : join(path, normalize(config.source))
-
 const functions: ConfigFunctionSignature = JSON.parse(readFileSync(functionsFile, 'utf-8'))
 
 if (functions !== Object(functions) || Array.isArray(functions)) {
