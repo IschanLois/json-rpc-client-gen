@@ -28,6 +28,7 @@ class RpcServerError extends Error {
 
   constructor(code, message, data) {
     this.data = data || null
+    this.code = code || -32603
 
     switch (code) {
       case -32700:
@@ -58,7 +59,7 @@ class Stub extends EventEmitter {
   #socket = null
   #timeout = null
   #currentRequestId = 0
-  #requestResolvers = new Map()
+  #requestHandlers = new Map()
   #pendingResponses = ['']
 
   #parsePendingResponses() {
@@ -68,9 +69,8 @@ class Stub extends EventEmitter {
 
       try {
         parsedResponse = JSON.parse(rawResponse)
-      } catch (error) {
-        // TODO logging options
-        console.error('Failed to parse response:', rawResponse, error)
+      } catch {
+        this.emit('error', new Error(\`Malformed server response \${rawResponse}\`))
         continue
       }
 
@@ -81,19 +81,21 @@ class Stub extends EventEmitter {
         return
       }
 
-      const requestResolver = this.#requestResolvers.get(id)
+      const requestHandler = this.#requestHandlers.get(id)
 
       // ignore non-matching response for better security
-      if (!requestResolver) {
+      if (!requestHandler) {
         return
       }
 
-      this.#requestResolvers.delete(id)
+      this.#requestHandlers.delete(id)
 
       if (error) {
-        throw new RpcServerError(...error)
+        const rpcError = new RpcServerError(error.code, error.message, error.data)
+        requestHandler.reject(rpcError)
+        this.emit('error', rpcError)
       } else {
-        requestResolver(result)
+        requestHandler.resolve(result)
         this.emit('data', rawResponse)
       }
     }
@@ -125,8 +127,8 @@ class Stub extends EventEmitter {
       return null
     }
     
-    return new Promise((resolve) => {
-      this.#requestResolvers.set(requestId, resolve)
+    return new Promise((resolve, reject) => {
+      this.#requestHandlers.set(requestId, { resolve, reject })
     })
   }
 
@@ -141,10 +143,8 @@ class Stub extends EventEmitter {
     })
 
     this.#socket.once('error', (error) => {
-      // TODO logging options
-      console.error(error.message)
       this.#socket.destroy()
-      process.exit()
+      this.emit('error', error)
     })
 
     await new Promise((resolve) => {
