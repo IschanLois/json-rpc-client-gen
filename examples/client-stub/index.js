@@ -3,7 +3,7 @@ import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
 const USER_TIMEOUT = 2500
-const VERSION = '2.0'
+const VERSION = 2.0
 
 const createTimeout = (socket) => {
   if (USER_TIMEOUT) {
@@ -13,6 +13,36 @@ const createTimeout = (socket) => {
   }
 
   return null
+}
+
+class RpcServerError extends Error {
+  code = null
+  data = null
+
+  constructor(code, message, data) {
+    this.data = data || null
+
+    switch (code) {
+      case -32700:
+        super(message || 'Parse error')
+        break
+      case -32600:
+        super(message || 'Invalid Request')
+        break
+      case -32601:
+        super(message || 'Method not found')
+        break
+      case -32602:
+        super(message || 'Invalid params')
+        break
+      case -32603:
+        super(message || 'Internal error')
+        break
+      default:
+        super(message || 'Unknown error')
+        break
+    }
+  }
 }
 
 // TODO embed throttling using max requests for a given time
@@ -27,7 +57,17 @@ class Stub extends EventEmitter {
   #parsePendingResponses() {
     while (this.#pendingResponses.length > 1) {
       const rawResponse = this.#pendingResponses.shift()
-      const { id, result, error } = JSON.parse(rawResponse)
+      let parsedResponse
+
+      try {
+        parsedResponse = JSON.parse(rawResponse)
+      } catch (error) {
+        // TODO logging options
+        console.error('Failed to parse response:', rawResponse, error)
+        continue
+      }
+
+      const { id, result, error } = parsedResponse
       
       // notification
       if (id === null) {
@@ -36,14 +76,15 @@ class Stub extends EventEmitter {
 
       const requestResolver = this.#requestResolvers.get(id)
 
+      // ignore non-matching response for better security
       if (!requestResolver) {
-        // TODO add error handling for invalid responses
+        return
       }
 
       this.#requestResolvers.delete(id)
 
       if (error) {
-        // TODO add error handling for errors
+        throw new RpcServerError(...error)
       } else {
         requestResolver(result)
         this.emit('data', rawResponse)
@@ -93,6 +134,7 @@ class Stub extends EventEmitter {
     })
 
     this.#socket.once('error', (error) => {
+      // TODO logging options
       console.error(error.message)
       this.#socket.destroy()
       process.exit()
@@ -137,3 +179,4 @@ class Stub extends EventEmitter {
 const clientStub = new Stub()
 
 export default clientStub
+
