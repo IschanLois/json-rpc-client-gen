@@ -4,7 +4,8 @@ export interface Config {
   port: number
   targetDir: string
   version?: '1.0' | '2.0'
-  timeout?: number
+  socketTimeout?: number
+  connectionTimeout?: number
 }
 
 export interface ConfigFunctionSignature {

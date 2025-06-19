@@ -46,7 +46,6 @@ class RpcServerError extends Error {
   }
 }
 
-// TODO embed throttling using max requests for a given time
 class Stub extends EventEmitter {
 
   #socket = null
@@ -141,7 +140,14 @@ class Stub extends EventEmitter {
     })
 
     await new Promise((resolve) => {
+      const connectionTimeout = setTimeout(() => {
+        this.#socket.destroy()
+        this.emit('error', new Error('TCP handshake timeout'))
+        reject()
+      }, 5000)
+
       this.#socket.once('connect', () => {
+        clearTimeout(connectionTimeout)
         this.#timeout = createTimeout(this.#socket)
         this.emit('connect')
         resolve()
@@ -179,5 +185,4 @@ class Stub extends EventEmitter {
 const clientStub = new Stub()
 
 export default clientStub
-
 

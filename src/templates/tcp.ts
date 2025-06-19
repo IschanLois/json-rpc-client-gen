@@ -2,21 +2,24 @@ export interface TcpConfig {
   host: string
   port: number
   version: '1.0' | '2.0'
-  timeout: number
+  socketTimeout: number
+  connectionTimeout: number
 }
 
+// TODO embed throttling using max requests for a given time
+// TODO support multiple sockets and throttling if limited sockets
 export const getTcpTemplate = (config: TcpConfig, methods: string): string => `// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-const USER_TIMEOUT = ${config.timeout}
+const USER_TIMEOUT = ${config.socketTimeout}
 const VERSION = ${config.version}
 
 const createTimeout = (socket) => {
   if (USER_TIMEOUT) {
     return setTimeout(() => {
       socket.destroy()
-    }, ${config.timeout})
+    }, ${config.socketTimeout})
   }
 
   return null
@@ -53,7 +56,6 @@ class RpcServerError extends Error {
   }
 }
 
-// TODO embed throttling using max requests for a given time
 class Stub extends EventEmitter {
 
   #socket = null
@@ -148,7 +150,14 @@ class Stub extends EventEmitter {
     })
 
     await new Promise((resolve) => {
+      const connectionTimeout = setTimeout(() => {
+        this.#socket.destroy()
+        this.emit('error', new Error('TCP handshake timeout'))
+        reject()
+      }, ${config.connectionTimeout})
+
       this.#socket.once('connect', () => {
+        clearTimeout(connectionTimeout)
         this.#timeout = createTimeout(this.#socket)
         this.emit('connect')
         resolve()

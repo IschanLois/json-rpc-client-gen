@@ -3,8 +3,9 @@ import { writeFile } from 'node:fs'
 import { getTcpTemplate } from './templates/tcp.js'
 import type { Config, ConfigFunctionSignature } from './types.js'
 
-const DEFAULT_TIMEOUT = 5000
+const DEFAULT_TCP_SOCKET_TIMEOUT = 60000 * 5
 const DEFAULT_VERSION = '2.0'
+const DEFAULT_TCP_CONNECTION_TIMEOUT = 60000 * 5
 
 const appendMethod = (
   currentMethodsString: string,
@@ -21,15 +22,7 @@ const appendMethod = (
 }
 
 // TODO: add TLS support
-export const generateClientStub = ({
-  host,
-  port,
-  timeout = DEFAULT_TIMEOUT,
-  version = DEFAULT_VERSION,
-}: Config,
-  target: string,
-  functions: ConfigFunctionSignature,
-): void => {
+export const generateClientStub = (config: Config, target: string, functions: ConfigFunctionSignature): void => {
 
   const methods: string = Object
     .entries(functions)
@@ -40,10 +33,10 @@ export const generateClientStub = ({
     .trimStart()
 
   const template = getTcpTemplate({
-    host,
-    port,
-    timeout,
-    version,
+    socketTimeout: config.socketTimeout || DEFAULT_TCP_SOCKET_TIMEOUT,
+    version: config.version || DEFAULT_VERSION,
+    connectionTimeout: config.connectionTimeout || DEFAULT_TCP_CONNECTION_TIMEOUT,
+    ...config,
   }, methods)
 
   writeFile(target, template, (err) => {
