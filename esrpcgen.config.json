@@ -1,9 +1,9 @@
 {
   "source": "./src/functions.esrpc.json",
-  "targetDir": "./examples/client-stub",
+  "targetDir": "./examples/todo-rpc/client-stub",
   "host": "127.0.0.1",
-  "port": 25,
-  "socketTimeout": 2500,
   "version": "2.0",
-  "connectionTimeout": 5000
+  "port": 25,
+  "socketTimeout": 360000,
+  "connectionTimeout": 360000
 }

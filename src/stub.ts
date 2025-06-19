@@ -39,12 +39,7 @@ export const generateClientStub = (config: Config, target: string, functions: Co
     ...config,
   }, methods)
 
-  writeFile(target, template, (err) => {
-    if (err) {
-      console.error(err)
-      return
-    }
-
+  writeFile(target, template, () => {
     console.log('successfully written client stub.')
   })
 }

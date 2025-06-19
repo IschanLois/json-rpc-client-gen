@@ -6,7 +6,6 @@ export interface TcpConfig {
   connectionTimeout: number
 }
 
-// TODO embed throttling using max requests for a given time
 // TODO support multiple sockets and throttling if limited sockets
 export const getTcpTemplate = (config: TcpConfig, methods: string): string => `// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
