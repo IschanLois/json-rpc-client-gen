@@ -5,16 +5,6 @@ import { connect } from 'node:net'
 const USER_TIMEOUT = 1000
 const VERSION = 2.0
 
-const createTimeout = (socket) => {
-  if (USER_TIMEOUT) {
-    return setTimeout(() => {
-      socket.destroy()
-    }, 1000)
-  }
-
-  return null
-}
-
 class RpcServerError extends Error {
   code = null
   data = null
@@ -49,7 +39,6 @@ class RpcServerError extends Error {
 class Stub extends EventEmitter {
 
   #socket = null
-  #timeout = null
   #currentRequestId = 0
   #requestHandlers = new Map()
   #pendingResponses = ['']
@@ -97,10 +86,6 @@ class Stub extends EventEmitter {
       this.connect()
     }
 
-    if (this.#timeout) {
-      clearTimeout(this.#timeout)
-    }
-
     const requestId = isNotification ? null : this.#currentRequestId
 
     const message = JSON.stringify({
@@ -112,7 +97,6 @@ class Stub extends EventEmitter {
 
     this.#currentRequestId += 1
     this.#socket.write(`${message}\n`)
-    this.#timeout = createTimeout(this.#socket)
 
     if (requestId === null) {
       return null
@@ -145,17 +129,17 @@ class Stub extends EventEmitter {
 
     this.#socket.once('connect', () => {
       clearTimeout(connectionTimeout)
-      this.#timeout = createTimeout(this.#socket)
+
+      this.#socket.setTimeout(USER_TIMEOUT || 0, () => {
+        this.close()
+        this.emit('timeout')
+      })
+
       this.emit('connect')
     })
   }
 
   close() {
-    if (this.#timeout) {
-      clearTimeout(this.#timeout)
-      this.#timeout = null
-    }
-
     if (!this.#socket || this.#socket.destroyed) {
       return
     }
