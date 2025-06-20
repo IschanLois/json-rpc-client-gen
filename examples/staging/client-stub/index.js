@@ -2,14 +2,14 @@
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-const USER_TIMEOUT = 360000
+const USER_TIMEOUT = 1000
 const VERSION = 2.0
 
 const createTimeout = (socket) => {
   if (USER_TIMEOUT) {
     return setTimeout(() => {
       socket.destroy()
-    }, 360000)
+    }, 1000)
   }
 
   return null

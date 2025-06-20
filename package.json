@@ -1,5 +1,5 @@
 {
-  "name": "es-rpcgen",
+  "name": "json-rpc-client-gen",
   "version": "1.0.0",
   "description": "A client stub generator for RPC systems built on JavaScript",
   "main": "index.js",

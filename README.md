@@ -101,7 +101,7 @@ stub.on('data', (result) => {
 | ------- | ---- | ------- | ----------- | ------- |
 | source | `string` | - | JSON file where your functions are defined | ./src/functions.esrpc.json |
 | host   | `string` | - | Target server hostname or IPv4/IPv6 (uses `dns.lookup()`) | localhost |
-| port   | `number` | - | Target server port | 80 |
+| port   | `number` | - | Target server port | 25 |
 | targetDir | `string` | - | Directory where client stub file will be emitted | ./src/client |
 | version **(optional)** |`1.0` or `2.0` | `2.0` | JSON-RPC specification version | 2.0 | 
 | socketTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a socket will be idle before being destroyed | 10 000 |
