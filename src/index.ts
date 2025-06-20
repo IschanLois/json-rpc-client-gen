@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { isAbsolute, join, normalize } from 'node:path'
 import { readFileSync } from 'node:fs'
 
