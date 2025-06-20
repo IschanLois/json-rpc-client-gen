@@ -1,6 +1,6 @@
 # json-rcp-client-gen
 
-A client stub generator for Node [JSON-RPC](https://www.jsonrpc.org/specification) Systems
+A `Node` client stub generator for [JSON-RPC](https://www.jsonrpc.org/specification) Systems
 
 ---
 **NOTE**
@@ -30,6 +30,25 @@ This generators wraps the complexities of:
    ```
    npx json-rpc-client-gen
    ```
+
+
+## Sample Usage
+
+```JavaScript
+import stub from './client-stub/index.js'
+
+stub.on('connect', async () => {
+  // Event Emitter data access
+  stub.on('data', (data) => {
+    console.log('data received:', data)
+  })
+  
+  // Promises data access
+  console.log(await Promise.all([stub.add(1, 2), stub.subtract(5, 2)]))
+})
+
+stub.connect()
+```
 
 ## Client stub
 - The client stub code generated currently only supports ESM.
@@ -70,10 +89,8 @@ console.log(data)
 ```
 
 2. `Event Emitters`
-
 ```JavaScript
 stub.on('data', (result) => {
-  // result is the raw JSON response
   console.log(result)
 })
 ```
@@ -88,4 +105,4 @@ stub.on('data', (result) => {
 | targetDir | `string` | - | Directory where client stub file will be emitted | ./src/client |
 | version **(optional)** |`1.0` or `2.0` | `2.0` | JSON-RPC specification version | 2.0 | 
 | socketTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a socket will be idle before being destroyed | 10 000 |
-connectionTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a TCP handshake can be successful, rejects and emits an error if timed out | 10 000|
+connectionTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a TCP handshake can be successful, rejects and emits an error if timed out | 10 000 |

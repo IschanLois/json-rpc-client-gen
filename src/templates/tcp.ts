@@ -94,7 +94,6 @@ class Stub extends EventEmitter {
       if (error) {
         const rpcError = new RpcServerError(error.code, error.message, error.data)
         requestHandler.reject(rpcError)
-        this.emit('error', rpcError)
       } else {
         requestHandler.resolve(result)
         this.emit('data', rawResponse)
@@ -102,9 +101,9 @@ class Stub extends EventEmitter {
     }
   }
 
-  async #sendRequest(method, params, isNotification = false) {
+  #sendRequest(method, params, isNotification = false) {
     if (!this.#socket || this.#socket.destroyed) {
-      await this.connect()
+      this.connect()
     }
 
     if (this.#timeout) {
@@ -133,7 +132,7 @@ class Stub extends EventEmitter {
     })
   }
 
-  async connect() {
+  connect() {
     this.#socket = connect({ host: '${config.host}', port: ${config.port} })
 
     this.#socket.on('data', (data) => {
@@ -148,19 +147,15 @@ class Stub extends EventEmitter {
       this.emit('error', error)
     })
 
-    await new Promise((resolve) => {
-      const connectionTimeout = setTimeout(() => {
-        this.#socket.destroy()
-        this.emit('error', new Error('TCP handshake timeout'))
-        reject()
-      }, ${config.connectionTimeout})
+    const connectionTimeout = setTimeout(() => {
+      this.#socket.destroy()
+      this.emit('error', new Error('TCP handshake timeout'))
+    }, ${config.connectionTimeout})
 
-      this.#socket.once('connect', () => {
-        clearTimeout(connectionTimeout)
-        this.#timeout = createTimeout(this.#socket)
-        this.emit('connect')
-        resolve()
-      })
+    this.#socket.once('connect', () => {
+      clearTimeout(connectionTimeout)
+      this.#timeout = createTimeout(this.#socket)
+      this.emit('connect')
     })
   }
 

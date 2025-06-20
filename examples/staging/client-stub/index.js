@@ -2,14 +2,14 @@
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-const USER_TIMEOUT = 2500
+const USER_TIMEOUT = 360000
 const VERSION = 2.0
 
 const createTimeout = (socket) => {
   if (USER_TIMEOUT) {
     return setTimeout(() => {
       socket.destroy()
-    }, 2500)
+    }, 360000)
   }
 
   return null
@@ -85,7 +85,6 @@ class Stub extends EventEmitter {
       if (error) {
         const rpcError = new RpcServerError(error.code, error.message, error.data)
         requestHandler.reject(rpcError)
-        this.emit('error', rpcError)
       } else {
         requestHandler.resolve(result)
         this.emit('data', rawResponse)
@@ -93,9 +92,9 @@ class Stub extends EventEmitter {
     }
   }
 
-  async #sendRequest(method, params, isNotification = false) {
+  #sendRequest(method, params, isNotification = false) {
     if (!this.#socket || this.#socket.destroyed) {
-      await this.connect()
+      this.connect()
     }
 
     if (this.#timeout) {
@@ -124,8 +123,8 @@ class Stub extends EventEmitter {
     })
   }
 
-  async connect() {
-    this.#socket = connect({ host: '127.0.0.1', port: 25 })
+  connect() {
+    this.#socket = connect({ host: 'localhost', port: 25 })
 
     this.#socket.on('data', (data) => {
       const serverData = data.toString().split('\n')
@@ -139,19 +138,15 @@ class Stub extends EventEmitter {
       this.emit('error', error)
     })
 
-    await new Promise((resolve) => {
-      const connectionTimeout = setTimeout(() => {
-        this.#socket.destroy()
-        this.emit('error', new Error('TCP handshake timeout'))
-        reject()
-      }, 5000)
+    const connectionTimeout = setTimeout(() => {
+      this.#socket.destroy()
+      this.emit('error', new Error('TCP handshake timeout'))
+    }, 360000)
 
-      this.#socket.once('connect', () => {
-        clearTimeout(connectionTimeout)
-        this.#timeout = createTimeout(this.#socket)
-        this.emit('connect')
-        resolve()
-      })
+    this.#socket.once('connect', () => {
+      clearTimeout(connectionTimeout)
+      this.#timeout = createTimeout(this.#socket)
+      this.emit('connect')
     })
   }
 

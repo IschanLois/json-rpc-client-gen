@@ -1,6 +1,6 @@
 {
   "source": "./src/functions.esrpc.json",
-  "targetDir": "./examples/todo-rpc/client-stub",
+  "targetDir": "./examples/staging/client-stub",
   "host": "localhost",
   "version": "2.0",
   "port": 25,
