@@ -1,6 +1,6 @@
 {
-  "source": "./src/functions.esrpc.json",
-  "targetDir": "./examples/staging/client-stub",
+  "source": "./functions.esrpc.json",
+  "targetDir": "./client/client-stub",
   "host": "localhost",
   "version": "2.0",
   "port": 25,

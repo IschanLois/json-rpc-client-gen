@@ -16,7 +16,7 @@ This generators wraps the complexities of:
 ## Getting started
 1. Make sure than Node is installed. The binary can run on Node `v12` but `v18` or higher is recommended.
    - Currently, the project only supports ES Module resolution which is fully supported by Node `v12` and higher.
-2. In your project, create a configuration file `esrpcgen.config.json`
+2. In your project, create a configuration file `jsonrpcgen.config.json`
    - The config fil will be read from the `CWD` upwards.
    - See [Configuration file](#configuration-file) section for options.
 3. Run the command to generate the client stub for your RPC server.
@@ -97,12 +97,28 @@ stub.on('data', (result) => {
 - Emitted result is the `RAW JSON` response.
 
 ## Configuration file
+
 | Options | Type | Default | Description | Example |
 | ------- | ---- | ------- | ----------- | ------- |
-| source | `string` | - | JSON file where your functions are defined | ./src/functions.esrpc.json |
+| source | `string` | - | JSON file for your function | ./src/functions.esrpc.json |
 | host   | `string` | - | Target server hostname or IPv4/IPv6 (uses `dns.lookup()`) | localhost |
 | port   | `number` | - | Target server port | 25 |
 | targetDir | `string` | - | Directory where client stub file will be emitted | ./src/client |
 | version **(optional)** |`1.0` or `2.0` | `2.0` | JSON-RPC specification version | 2.0 | 
 | socketTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a socket will be idle before being destroyed | 10 000 |
 connectionTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a TCP handshake can be successful, rejects and emits an error if timed out | 10 000 |
+
+## Functions definitions
+
+Function signatures that your server supports are defined in a file in `source` parameter in the configuration file
+
+```json
+{
+   "method1": {
+      "parameters": ["param1", "param2"]
+   },
+   "method2": {
+      "parameters": ["param1", "param2"]
+   }
+}
+```
