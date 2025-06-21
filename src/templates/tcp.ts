@@ -14,7 +14,7 @@ import { connect } from 'node:net'
 const USER_TIMEOUT = ${config.socketTimeout}
 const VERSION = ${config.version}
 
-class RpcServerError extends Error {
+class JsonRpcError extends Error {
   code = null
   data = null
 
@@ -81,7 +81,7 @@ class Stub extends EventEmitter {
       this.#requestHandlers.delete(id)
 
       if (error) {
-        const rpcError = new RpcServerError(error.code, error.message, error.data)
+        const rpcError = new JsonRpcError(error.code, error.message, error.data)
         requestHandler.reject(rpcError)
       } else {
         requestHandler.resolve(result)
