@@ -13,11 +13,12 @@ const appendMethod = (
   parameters: string[],
 ): string => {
   const stringParams: string = parameters.join(', ')
+  const sendReqParams = parameters.length > 0 ? `, { ${stringParams} }` : ''
 
   return `${currentMethodsString}
 
   ${functionName}(${stringParams}) {
-    return this.#sendRequest('${functionName}', { ${stringParams} })
+    return this.#sendRequest('${functionName}'${sendReqParams})
   }`
 }
 

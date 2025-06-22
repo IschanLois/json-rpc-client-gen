@@ -15,13 +15,7 @@ const USER_TIMEOUT = ${config.socketTimeout}
 const VERSION = ${config.version}
 
 class JsonRpcError extends Error {
-  code = null
-  data = null
-
   constructor(code, message, data) {
-    this.data = data || null
-    this.code = code || -32603
-
     switch (code) {
       case -32700:
         super(message || 'Parse error')
@@ -42,6 +36,9 @@ class JsonRpcError extends Error {
         super(message || 'Unknown error')
         break
     }
+    
+    this.data = data || null
+    this.code = code || -32603
   }
 }
 
@@ -90,7 +87,7 @@ class Stub extends EventEmitter {
     }
   }
 
-  #sendRequest(method, params, isNotification = false) {
+  #sendRequest(method, params = {}, isNotification = false) {
     if (!this.#socket || this.#socket.destroyed) {
       this.connect()
     }
@@ -146,10 +143,12 @@ class Stub extends EventEmitter {
 
       this.emit('connect')
     })
+
+    this.#socket.once('close', () => this.close())
   }
 
   close() {
-    if (!this.#socket || this.#socket.destroyed) {
+    if (!this.#socket) {
       return
     }
 

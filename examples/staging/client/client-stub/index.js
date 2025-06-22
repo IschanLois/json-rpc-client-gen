@@ -2,17 +2,11 @@
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-const USER_TIMEOUT = 1000
+const USER_TIMEOUT = 360000
 const VERSION = 2.0
 
 class JsonRpcError extends Error {
-  code = null
-  data = null
-
   constructor(code, message, data) {
-    this.data = data || null
-    this.code = code || -32603
-
     switch (code) {
       case -32700:
         super(message || 'Parse error')
@@ -33,6 +27,9 @@ class JsonRpcError extends Error {
         super(message || 'Unknown error')
         break
     }
+    
+    this.data = data || null
+    this.code = code || -32603
   }
 }
 
@@ -81,7 +78,7 @@ class Stub extends EventEmitter {
     }
   }
 
-  #sendRequest(method, params, isNotification = false) {
+  #sendRequest(method, params = {}, isNotification = false) {
     if (!this.#socket || this.#socket.destroyed) {
       this.connect()
     }
@@ -137,10 +134,12 @@ class Stub extends EventEmitter {
 
       this.emit('connect')
     })
+
+    this.#socket.once('close', () => this.close())
   }
 
   close() {
-    if (!this.#socket || this.#socket.destroyed) {
+    if (!this.#socket) {
       return
     }
 

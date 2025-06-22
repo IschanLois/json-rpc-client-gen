@@ -5,6 +5,10 @@ stub.on('connect', async () => {
     console.log('data received:', data)
   })
 
+  stub.on('close', () => {
+    console.log('Connection closed')
+  })
+
   console.log(await Promise.all([stub.add(1, 2), stub.subtract(1, 2)]))
 })
 
