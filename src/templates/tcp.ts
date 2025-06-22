@@ -7,12 +7,13 @@ export interface TcpConfig {
 }
 
 // TODO support multiple sockets and throttling if limited sockets
+// TODO circular IDs
 export const getTcpTemplate = (config: TcpConfig, methods: string): string => `// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
 const USER_TIMEOUT = ${config.socketTimeout}
-const VERSION = ${config.version}
+const VERSION = '${config.version}'
 
 class JsonRpcError extends Error {
   constructor(code, message, data) {
@@ -49,7 +50,11 @@ class Stub extends EventEmitter {
   #requestHandlers = new Map()
   #pendingResponses = ['']
 
-  #parsePendingResponses() {
+  #parsePendingResponses(data) {
+    const serverData = data.toString().split('\\n')
+    this.#pendingResponses[0] += serverData.shift()
+    this.#pendingResponses.push(...serverData)
+
     while (this.#pendingResponses.length > 1) {
       const rawResponse = this.#pendingResponses.shift()
       let parsedResponse
@@ -117,10 +122,7 @@ class Stub extends EventEmitter {
     this.#socket = connect({ host: '${config.host}', port: ${config.port} })
 
     this.#socket.on('data', (data) => {
-      const serverData = data.toString().split('\\n')
-      this.#pendingResponses[0] += serverData.shift()
-      this.#pendingResponses.push(...serverData)
-      this.#parsePendingResponses()
+      this.#parsePendingResponses(data)
     })
 
     this.#socket.once('error', (error) => {

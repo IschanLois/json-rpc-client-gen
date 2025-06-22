@@ -1,11 +1,14 @@
 {
-  "add": {
-    "parameters": ["a", "b"]
+  "addTodo": {
+    "parameters": ["title", "description"]
   },
-  "subtract": {
-    "parameters": ["a", "b"]
+  "getTodos": {
+    "parameters": []
   },
-  "todos": {
-    "parameters": ["ids"]
+  "deleteTodo": {
+    "parameters": ["id"]
+  },
+  "updateTodo": {
+    "parameters": ["id", "title", "description"]
   }
 }

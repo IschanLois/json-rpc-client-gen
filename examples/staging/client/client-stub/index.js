@@ -3,7 +3,7 @@ import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
 const USER_TIMEOUT = 360000
-const VERSION = 2.0
+const VERSION = '2.0'
 
 class JsonRpcError extends Error {
   constructor(code, message, data) {
@@ -40,7 +40,11 @@ class Stub extends EventEmitter {
   #requestHandlers = new Map()
   #pendingResponses = ['']
 
-  #parsePendingResponses() {
+  #parsePendingResponses(data) {
+    const serverData = data.toString().split('\n')
+    this.#pendingResponses[0] += serverData.shift()
+    this.#pendingResponses.push(...serverData)
+
     while (this.#pendingResponses.length > 1) {
       const rawResponse = this.#pendingResponses.shift()
       let parsedResponse
@@ -108,10 +112,7 @@ class Stub extends EventEmitter {
     this.#socket = connect({ host: 'localhost', port: 25 })
 
     this.#socket.on('data', (data) => {
-      const serverData = data.toString().split('\n')
-      this.#pendingResponses[0] += serverData.shift()
-      this.#pendingResponses.push(...serverData)
-      this.#parsePendingResponses()
+      this.#parsePendingResponses(data)
     })
 
     this.#socket.once('error', (error) => {

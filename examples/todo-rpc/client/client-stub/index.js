@@ -3,26 +3,10 @@ import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
 const USER_TIMEOUT = 360000
-const VERSION = 2.0
+const VERSION = '2.0'
 
-const createTimeout = (socket) => {
-  if (USER_TIMEOUT) {
-    return setTimeout(() => {
-      socket.destroy()
-    }, 360000)
-  }
-
-  return null
-}
-
-class RpcServerError extends Error {
-  code = null
-  data = null
-
+class JsonRpcError extends Error {
   constructor(code, message, data) {
-    this.data = data || null
-    this.code = code || -32603
-
     switch (code) {
       case -32700:
         super(message || 'Parse error')
@@ -43,18 +27,24 @@ class RpcServerError extends Error {
         super(message || 'Unknown error')
         break
     }
+    
+    this.data = data || null
+    this.code = code || -32603
   }
 }
 
 class Stub extends EventEmitter {
 
   #socket = null
-  #timeout = null
   #currentRequestId = 0
   #requestHandlers = new Map()
   #pendingResponses = ['']
 
-  #parsePendingResponses() {
+  #parsePendingResponses(data) {
+    const serverData = data.toString().split('\n')
+    this.#pendingResponses[0] += serverData.shift()
+    this.#pendingResponses.push(...serverData)
+
     while (this.#pendingResponses.length > 1) {
       const rawResponse = this.#pendingResponses.shift()
       let parsedResponse
@@ -83,9 +73,8 @@ class Stub extends EventEmitter {
       this.#requestHandlers.delete(id)
 
       if (error) {
-        const rpcError = new RpcServerError(error.code, error.message, error.data)
+        const rpcError = new JsonRpcError(error.code, error.message, error.data)
         requestHandler.reject(rpcError)
-        this.emit('error', rpcError)
       } else {
         requestHandler.resolve(result)
         this.emit('data', rawResponse)
@@ -93,13 +82,9 @@ class Stub extends EventEmitter {
     }
   }
 
-  async #sendRequest(method, params, isNotification = false) {
+  #sendRequest(method, params = {}, isNotification = false) {
     if (!this.#socket || this.#socket.destroyed) {
-      await this.connect()
-    }
-
-    if (this.#timeout) {
-      clearTimeout(this.#timeout)
+      this.connect()
     }
 
     const requestId = isNotification ? null : this.#currentRequestId
@@ -113,7 +98,6 @@ class Stub extends EventEmitter {
 
     this.#currentRequestId += 1
     this.#socket.write(`${message}\n`)
-    this.#timeout = createTimeout(this.#socket)
 
     if (requestId === null) {
       return null
@@ -124,14 +108,11 @@ class Stub extends EventEmitter {
     })
   }
 
-  async connect() {
+  connect() {
     this.#socket = connect({ host: 'localhost', port: 25 })
 
     this.#socket.on('data', (data) => {
-      const serverData = data.toString().split('\n')
-      this.#pendingResponses[0] += serverData.shift()
-      this.#pendingResponses.push(...serverData)
-      this.#parsePendingResponses()
+      this.#parsePendingResponses(data)
     })
 
     this.#socket.once('error', (error) => {
@@ -139,29 +120,27 @@ class Stub extends EventEmitter {
       this.emit('error', error)
     })
 
-    await new Promise((resolve) => {
-      const connectionTimeout = setTimeout(() => {
-        this.#socket.destroy()
-        this.emit('error', new Error('TCP handshake timeout'))
-        reject()
-      }, 360000)
+    const connectionTimeout = setTimeout(() => {
+      this.#socket.destroy()
+      this.emit('error', new Error('TCP handshake timeout'))
+    }, 360000)
 
-      this.#socket.once('connect', () => {
-        clearTimeout(connectionTimeout)
-        this.#timeout = createTimeout(this.#socket)
-        this.emit('connect')
-        resolve()
+    this.#socket.once('connect', () => {
+      clearTimeout(connectionTimeout)
+
+      this.#socket.setTimeout(USER_TIMEOUT || 0, () => {
+        this.close()
+        this.emit('timeout')
       })
+
+      this.emit('connect')
     })
+
+    this.#socket.once('close', () => this.close())
   }
 
   close() {
-    if (this.#timeout) {
-      clearTimeout(this.#timeout)
-      this.#timeout = null
-    }
-
-    if (!this.#socket || this.#socket.destroyed) {
+    if (!this.#socket) {
       return
     }
 
@@ -169,16 +148,20 @@ class Stub extends EventEmitter {
     this.emit('close')
   }
 
-  add(a, b) {
-    return this.#sendRequest('add', { a, b })
+  addTodo(title, description) {
+    return this.#sendRequest('addTodo', { title, description })
   }
 
-  subtract(a, b) {
-    return this.#sendRequest('subtract', { a, b })
+  getTodos() {
+    return this.#sendRequest('getTodos')
   }
 
-  todos(ids) {
-    return this.#sendRequest('todos', { ids })
+  deleteTodo(id) {
+    return this.#sendRequest('deleteTodo', { id })
+  }
+
+  updateTodo(id, title, description) {
+    return this.#sendRequest('updateTodo', { id, title, description })
   }
 }
 

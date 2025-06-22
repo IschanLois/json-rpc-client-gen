@@ -4,6 +4,6 @@
   "host": "localhost",
   "version": "2.0",
   "port": 25,
-  "socketTimeout": 1000,
+  "socketTimeout": 360000,
   "connectionTimeout": 360000
 }
