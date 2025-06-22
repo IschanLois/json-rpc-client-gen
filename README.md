@@ -8,7 +8,7 @@ This package is in experimental phase and currently only supports TCP/IP for com
 
 ---
 
-This generators wraps the complexities of:
+This wraps the complexities of:
 
 1. Client to server network communication.
 2. Sending and parsing JSON-RPC network requests and responses.
@@ -17,9 +17,9 @@ This generators wraps the complexities of:
 1. Make sure than Node is installed. The binary can run on Node `v12` but `v18` or higher is recommended.
    - Currently, the project only supports ES Module resolution which is fully supported by Node `v12` and higher.
 2. In your project, create a configuration file `jsonrpcgen.config.json`
-   - The config fil will be read from the `CWD` upwards.
+   - The config file will be read from the `CWD` upwards.
    - See [Configuration file](#configuration-file) section for options.
-3. Run the command to generate the client stub for your RPC server.
+3. Run the binary to generate the client stub for your RPC server.
 
    ```
    json-rpc-client-gen

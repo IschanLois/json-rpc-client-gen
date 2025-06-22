@@ -1,0 +1,5 @@
+/src
+/examples
+/node_modules
+/*.json
+/*.{mjs,js}
