@@ -53,7 +53,7 @@ stub.connect()
 ## Client stub
 - The client stub code generated currently only supports ESM.
 - There's some support pseudo-parallelism using [Promise API static methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise). **But currently it only uses one socket stream**, hence data is sent and obtained from the same layer 4 source. Support for TCP sockets pooling will be implemented in the future.
-- Methods will implicitly connect to the server if the socket is closed/destroyed, however the requests can either be buffered in user memory or drained immediately depending on when the socket connects.  You can choose to explicitly call the `connect` method on the stub if you want appropriate stub lifecycle handling.
+- Methods will implicitly connect to the server if the socket is closed/destroyed, however the requests can be buffered in user memory if not yet connected.  You can choose to explicitly call the `connect` method on the stub if you want appropriate stub lifecycle handling.
 
 ## Stub error handling
 
@@ -105,8 +105,8 @@ stub.on('data', (result) => {
 | port   | `number` | - | Target server port | 25 |
 | targetDir | `string` | - | Directory where client stub file will be emitted | ./src/client |
 | version **(optional)** |`1.0` or `2.0` | `2.0` | JSON-RPC specification version | 2.0 | 
-| socketTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a socket will be idle before being destroyed | 10 000 |
-connectionTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a TCP handshake can be successful, rejects and emits an error if timed out | 10 000 |
+| socketTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a socket will be idle before being destroyed | 10000 |
+connectionTimeout **(optional)** | `number` | `300000 ms`/`5 mins` | Period in `ms` where a TCP handshake can be successful, rejects and emits an error if timed out | 10000 |
 
 ## Functions definitions
 
