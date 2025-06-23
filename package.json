@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/IschanLois/es-rpcgen.git"
+    "url": "git+https://github.com/IschanLois/json-rpc-client-gen.git"
   },
   "author": "christianlois.olo@gmail.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/IschanLois/es-rpcgen/issues"
+    "url": "https://github.com/IschanLois/json-rpc-client-gen.git/issues"
   },
   "type": "module",
-  "homepage": "https://github.com/IschanLois/es-rpcgen#readme",
+  "homepage": "https://github.com/IschanLois/json-rpc-client-gen.git#readme",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
     "eslint": "^9.23.0",
