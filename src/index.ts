@@ -3,8 +3,8 @@
 import { isAbsolute, join, normalize } from 'node:path'
 import { readFileSync } from 'node:fs'
 
-import { generateClientStub } from './stub.js'
-import { readConfigFile } from './utils.js'
+import { generateClientStub } from './stub/generateClientStub.js'
+import { readConfigFile } from './utils/readConfigFile.js'
 import type { ConfigFunctionSignature } from './types.js'
 
 const { path, config } = readConfigFile()

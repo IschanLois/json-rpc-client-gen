@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs'
 
 import { getTcpTemplate } from './templates/tcp.js'
-import type { Config, ConfigFunctionSignature } from './types.js'
+import type { Config, ConfigFunctionSignature } from '../types.js'
 
 const DEFAULT_TCP_SOCKET_TIMEOUT = 60000 * 5
 const DEFAULT_VERSION = '2.0'

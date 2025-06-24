@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import type { Config } from './types.js'
+import type { Config } from '../types.js'
 
 export const CONFIG_FILE = 'jsonrpcgen.config.json'
 export const CWD: string = process.cwd()
