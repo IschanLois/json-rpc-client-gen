@@ -62,7 +62,9 @@ class Stub extends EventEmitter {
       try {
         parsedResponse = JSON.parse(rawResponse)
       } catch {
-        this.emit('error', new Error(\`Malformed server response \${rawResponse}\`))
+        setImmediate(() => {
+          this.emit('error', new Error(\`Malformed server response \${rawResponse}\`))
+        })
         continue
       }
 
