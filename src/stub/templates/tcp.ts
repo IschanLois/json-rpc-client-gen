@@ -152,12 +152,13 @@ class Stub extends EventEmitter {
   }
 
   close() {
+    this.emit('close')
+
     if (!this.#socket) {
       return
     }
 
     this.#socket.destroy()
-    this.emit('close')
   }
 
   ${methods}
