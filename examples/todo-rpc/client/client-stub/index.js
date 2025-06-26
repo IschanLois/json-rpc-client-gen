@@ -36,9 +36,40 @@ class JsonRpcError extends Error {
 class Stub extends EventEmitter {
 
   #socket = null
+
   #currentRequestId = 0
+
   #requestHandlers = new Map()
+
   #pendingResponses = ['']
+
+  #handleResponse(parsedResponse) {
+    const { id, result, error } = parsedResponse
+      
+    // notification
+    if (id === null) {
+      return
+    }
+
+    const requestHandler = this.#requestHandlers.get(id)
+
+    // ignore non-matching response for better security
+    if (!requestHandler) {
+      return
+    }
+
+    this.#requestHandlers.delete(id)
+
+    if (error) {
+      const rpcError = new JsonRpcError(error.code, error.message, error.data)
+      requestHandler.reject(rpcError)
+    } else {
+      requestHandler.resolve(result)
+      setImmediate(() => {
+        this.emit('data', parsedResponse)
+      })
+    }
+  }
 
   #parsePendingResponses(data) {
     const serverData = data.toString().split('\n')
@@ -52,32 +83,18 @@ class Stub extends EventEmitter {
       try {
         parsedResponse = JSON.parse(rawResponse)
       } catch {
-        this.emit('error', new Error(`Malformed server response ${rawResponse}`))
+        setImmediate(() => {
+          this.emit('error', new Error(`Malformed server response ${rawResponse}`))
+        })
         continue
       }
 
-      const { id, result, error } = parsedResponse
-      
-      // notification
-      if (id === null) {
-        return
-      }
-
-      const requestHandler = this.#requestHandlers.get(id)
-
-      // ignore non-matching response for better security
-      if (!requestHandler) {
-        return
-      }
-
-      this.#requestHandlers.delete(id)
-
-      if (error) {
-        const rpcError = new JsonRpcError(error.code, error.message, error.data)
-        requestHandler.reject(rpcError)
+      if (Array.isArray(parsedResponse)) {
+        parsedResponse.forEach((response) => {
+          this.#handleResponse(response)
+        })
       } else {
-        requestHandler.resolve(result)
-        this.emit('data', rawResponse)
+        this.#handleResponse(parsedResponse)
       }
     }
   }
@@ -140,12 +157,13 @@ class Stub extends EventEmitter {
   }
 
   close() {
+    this.emit('close')
+
     if (!this.#socket) {
       return
     }
 
     this.#socket.destroy()
-    this.emit('close')
   }
 
   addTodo(title, description) {
@@ -163,9 +181,63 @@ class Stub extends EventEmitter {
   updateTodo(id, title, description) {
     return this.#sendRequest('updateTodo', { id, title, description })
   }
+
+  /**
+   * 
+   * @param {Object[]} requests - Array of request objects that will be batched
+   * @param {string} requests[i].method - The method to call
+   * @param {*[]} requests[i].params - The parameters for the method
+   * @param {boolean} requests[i].isNotification - Whether the request is a notification
+   */
+  batch(requests) {
+    if (!Array.isArray(requests)) {
+      throw new Error('batched requests must be an array')
+    }
+
+    if (requests.length === 0) {
+      return
+    }
+
+    const messages = []
+    const handlers = []
+
+    requests.forEach((request) => {
+      if (typeof request.method !== 'string') {
+        throw new Error('parameter method must be a string')
+      }
+
+      if (!(request.method in this)) {
+        throw new Error(`invalid method ${request.method} in batch request`)
+      }
+
+      if ('isNotification' in request && typeof request.isNotification !== 'boolean') {
+        throw new Error('parameter isNotification must be a boolean')
+      }
+
+      if ('params' in request && typeof request.params !== 'object') {
+        throw new Error('parameter params must be an object')
+      }
+
+      const requestId = request.isNotification ? null : this.#currentRequestId++
+
+      messages.push(JSON.stringify({
+        id: requestId,
+        jsonrpc: VERSION,
+        method: request.method,
+        params: request.params || [],
+      }))
+
+      handlers.push(new Promise((resolve, reject) => {
+        this.#requestHandlers.set(requestId, { resolve, reject })
+      }))
+    })
+
+    this.#socket.write(`${JSON.stringify(messages)}\n`)
+
+    return handlers
+  }
 }
 
 const clientStub = new Stub()
 
 export default clientStub
-

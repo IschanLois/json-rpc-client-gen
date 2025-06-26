@@ -12,22 +12,13 @@ const appendMethod = (
   functionName: string,
   parameters: string[],
 ): string => {
-  let sendReqParams: string
-  let functionParams: string
   const stringParams: string = parameters.join(', ')
-
-  if (parameters.length > 0) {
-    sendReqParams = `, { ${stringParams} }`
-    functionParams = `${stringParams}, callback`
-  } else {
-    sendReqParams = ''
-    functionParams = 'callback'
-  }
+  const sendReqParams = parameters.length > 0 ? `, { ${stringParams} }` : ''
 
   return `${currentMethodsString}
 
-  ${functionName}(${functionParams}) {
-    return this.#sendRequest('${functionName}'${sendReqParams}, callback)
+  ${functionName}(${stringParams}) {
+    return this.#sendRequest('${functionName}'${sendReqParams})
   }`
 }
 

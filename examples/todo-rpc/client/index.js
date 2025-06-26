@@ -12,7 +12,18 @@ stub.on('connect', async () => {
     console.log(await stub.getTodos())
     await stub.deleteTodo(0)
     console.log(await stub.getTodos())
-    await stub.deleteTodo(10)
+
+    const ans = await Promise.all(stub.batch([
+      { method: 'addTodo', params: { title: 'Batch Todo 1', description: 'Description 1' } },
+      { method: 'addTodo', params: { title: 'Batch Todo 2', description: 'Description 2' }  },
+      { method: 'addTodo', params: { title: 'Batch Todo 3', description: 'Description 3' }  },
+      { method: 'addTodo', params: { title: 'Batch Todo 4', description: 'Description 4' }  },
+      { method: 'addTodo', params: { title: 'Batch Todo 5', description: 'Description 6' }  },
+      { method: 'getTodos' },
+    ]))
+
+    console.log(ans)
+
     console.log(await stub.getTodos())
   } catch (err) {
     console.log(err)

@@ -67,13 +67,17 @@ Includes:
 - Timeouts
 - Socket errors
 
-This will be emitted with the `error` event so appropriate on `error` handler can be given so it would not be thrown.
+This will be emitted with the `error` event so appropriate on `error` handler can be given so it would not be thrown. This is emitted asynchronously so as to limit the interference with important synchronous operations of the consumer and the stub.
 
 ```JavaScript
 stub.on('error', (err) => {
    ...
 })
 ```
+
+### Usage error
+
+This will be `thrown` such as the wrong usage of the `batch` method (see [Batching](#batching)). This provides granular error handling for synchronous errors.
 
 ## Methods result access
 
@@ -95,6 +99,38 @@ stub.on('data', (result) => {
 })
 ```
 - Emitted result is the `RAW JSON` response.
+
+## Batching
+- As mentioned above, consumers can do their own batching using [Promise API static methods](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
+- The stub also exposes a `batch` method, an implementation of the JSON-RPC batch specification. This allows a consumer to pass RPC in object form. This would return a list of promises corresponding to the RPC at each index. See usage below. 
+
+```JavaScript
+// batching using promises
+const [res1, res2] = await Promise.all([stubs.method1(param1), stub.method2(param1)])
+
+// stub batching
+const [res1, res2] = await stub.batch([
+   { method: 'method1', params: { param1: 'param1' }, isNotification: true },
+   { method: 'method2', params: { param1: 'param1' }, isNotification: false },
+])
+```
+
+### Promise batching vs Batch method
+- Promise batching will send the requests to the server one-by-one in a concurrent manner.
+- `batch` method will send the requests to the server in an array. This returns an a list of promises.
+
+**batch method param**
+```JavaScript
+/**
+ * params and isNotification fields are optional
+ */
+{
+   method: 'method1', // string
+   params: { param1: 'param1' }, // object of parameters for the RPC
+   isNotification: true // whether the RPC is a notification
+}
+```
+
 
 ## Configuration file
 

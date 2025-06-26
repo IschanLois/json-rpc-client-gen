@@ -39,6 +39,34 @@ const functions = {
 const requests = ['']
 let currentSocket = null
 
+const handleRequest = (parsedRequest) => {
+  const { id, method, params } = parsedRequest
+
+  let message
+
+  try {
+    message = {
+      id,
+      method,
+      result: functions[method](...Object.values(params)),
+      error: null,
+    }
+  } catch (error) {
+    message = {
+      id,
+      method,
+      result: null,
+      error: {
+        code: error.code || -32603,
+        message: error.message || 'Internal server error',
+        data: error.data || null,
+      },
+    }
+  }
+
+  return message
+}
+
 const parseRequests = (data) => {
   const rawRequests = data.toString().split('\n')
   requests[requests.length - 1] += rawRequests.shift()
@@ -46,31 +74,16 @@ const parseRequests = (data) => {
 
   while (requests.length > 1) {
     console.log(`Received request: ${requests[0]}`)
-    const { id, method, params } = JSON.parse(requests.shift())
+    const parsedRequest = JSON.parse(requests.shift())
 
-    let message
-
-    try {
-      message = {
-        id,
-        method,
-        result: functions[method](...Object.values(params)),
-        error: null,
-      }
-    } catch (error) {
-      message = {
-        id,
-        method,
-        result: null,
-        error: {
-          code: error.code || -32603,
-          message: error.message || 'Internal server error',
-          data: error.data || null,
-        },
-      }
+    if (Array.isArray(parsedRequest)) {
+      const message = parsedRequest.map((request) => {
+        return handleRequest(JSON.parse(request))
+      })
+      currentSocket.write(`${JSON.stringify(message)}\n`)
+    } else {
+      currentSocket.write(`${JSON.stringify(handleRequest(parsedRequest))}\n`)
     }
-
-    currentSocket.write(`${JSON.stringify(message)}\n`)
   }
 }
 
