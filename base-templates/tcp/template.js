@@ -1,7 +1,7 @@
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-import JsonRpcError from '../../jsonRpcError.js'
+import JsonRpcError from './jsonRpcError.js'
 
 const SOCKET_TIMEOUT = 360000
 const VERSION = '2.0'

@@ -1,0 +1,80 @@
+import path, { normalize } from 'node:path'
+
+import { readFileSync, writeFileSync } from 'fs'
+import { parse } from 'acorn'
+import { toJs } from 'estree-util-to-js'
+
+const args = process.argv.slice(2)
+const isArgumentParsed = Array(args).fill(false)
+
+const config = {}
+
+/**
+ * @param {number} index - the index of the template argument in process.argv
+ */
+const setTemplate = (index) => {
+  const supportedTemplates = new Set(['tcp'])
+
+  if (index + 1 >= args.length) {
+    console.error(`Error: No template specified after ${template}`)
+    process.exit(1)
+  }
+
+  const template = args[index + 1]
+
+  if (!(supportedTemplates.has(template))) {
+    console.error(`Error: Unsupported template "${template}". Supported templates are: ${Array.from(supportedTemplates).join(', ')}`)
+    process.exit(1)
+  }
+
+  config.template = template
+  isArgumentParsed[index + 1] = true
+}
+
+const processArguments = () => {
+  args.forEach((arg, index) => {
+    switch (arg) {
+      case '-t': {
+        setTemplate(index)
+        break
+      }
+
+      default: {
+        if (!isArgumentParsed[index]) {
+          console.error(`Error: Unknown argument "${arg}". Use -t <template> to specify a template.`)
+          process.exit(1)
+        }
+      }
+    }
+  })
+
+  if (!('template' in config)) {
+    console.error('Error: No template specified. Use -t <template> to specify a template.')
+    process.exit(1)
+  }
+}
+
+const main = () => {
+  processArguments()
+
+  const templateDir = normalize(`${import.meta.dirname}/../base-templates/${config.template}`)
+  const templateContent = readFileSync(`${templateDir}/template.js`, 'utf8')
+
+  const ast = parse(templateContent, {
+    ecmaVersion: 2022,
+    sourceType: 'module',
+  })
+
+  const template = `
+  export const template = \`${toJs(ast).value}\`
+  `
+
+  const targetDir = normalize(`${import.meta.dirname}/../src/stub/templates/${config.template}`)
+  writeFileSync(
+    path.join(targetDir, '/template.ts'),
+    template,
+    { encoding: 'utf8' },
+  )
+}
+
+main()
