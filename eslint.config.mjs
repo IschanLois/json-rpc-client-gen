@@ -6,7 +6,6 @@ import tseslint from 'typescript-eslint'
 export default [
   {
     rules: {
-      'dot-notation': [ 'error', { allowKeywords: false } ],
       'prefer-const': ['error', { destructuring: 'any' }],
       'semi': ['error', 'never'],
       'prefer-arrow-callback': ['warn'],
@@ -24,6 +23,6 @@ export default [
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['**/*.js'],
+    ignores: ['{dist,examples}/**/*.js'],
   },
 ]

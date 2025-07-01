@@ -1,37 +1,10 @@
-// code-generated file - es-rpcgen
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
-const USER_TIMEOUT = 360000
+import JsonRpcError from '../../jsonRpcError.js'
+
+const SOCKET_TIMEOUT = 360000
 const VERSION = '2.0'
-
-class JsonRpcError extends Error {
-  constructor(code, message, data) {
-    switch (code) {
-      case -32700:
-        super(message || 'Parse error')
-        break
-      case -32600:
-        super(message || 'Invalid Request')
-        break
-      case -32601:
-        super(message || 'Method not found')
-        break
-      case -32602:
-        super(message || 'Invalid params')
-        break
-      case -32603:
-        super(message || 'Internal error')
-        break
-      default:
-        super(message || 'Unknown error')
-        break
-    }
-
-    this.data = data || null
-    this.code = code || -32603
-  }
-}
 
 class Stub extends EventEmitter {
 
@@ -119,7 +92,7 @@ class Stub extends EventEmitter {
     if (requestId === null) {
       return null
     }
-    
+
     return new Promise((resolve, reject) => {
       this.#requestHandlers.set(requestId, { resolve, reject })
     })
@@ -145,7 +118,7 @@ class Stub extends EventEmitter {
     this.#socket.once('connect', () => {
       clearTimeout(connectionTimeout)
 
-      this.#socket.setTimeout(USER_TIMEOUT || 0, () => {
+      this.#socket.setTimeout(SOCKET_TIMEOUT || 0, () => {
         this.close()
         this.emit('timeout')
       })
@@ -183,7 +156,6 @@ class Stub extends EventEmitter {
   }
 
   /**
-   * 
    * @param {Object[]} requests - Array of request objects that will be batched
    * @param {string} requests[i].method - The method to call
    * @param {*[]} requests[i].params - The parameters for the method
