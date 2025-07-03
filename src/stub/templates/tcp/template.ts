@@ -3,8 +3,8 @@
 import {connect} from 'node:net';
 import {configs} from './configs.js';
 import JsonRpcError from './jsonRpcError.js';
-const SOCKET_TIMEOUT = configs.socketTimeout;
-const VERSION = configs.version;
+const SOCKET_TIMEOUT = ${config.socketTimeout};
+const VERSION = ${config.version};
 class Stub extends EventEmitter {
   #socket = null;
   #currentRequestId = 0;
@@ -25,7 +25,7 @@ class Stub extends EventEmitter {
     const connectionTimeout = setTimeout(() => {
       this.#socket.destroy();
       this.emit('error', new Error('TCP handshake timeout'));
-    }, configs.connectionTimeout);
+    }, ${config.connectionTimeout});
     this.#socket.once('connect', () => {
       clearTimeout(connectionTimeout);
       this.#socket.setTimeout(SOCKET_TIMEOUT || 0, () => {

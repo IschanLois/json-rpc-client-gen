@@ -70,57 +70,11 @@ const createExpressionStatementIdentifier = (name) => ({
 })
 
 const walkAst = (ast) => {
-  if (ast.type === 'MethodDefinition') {
-    walkAst(ast.value)
+  if (ast.type === 'MemberExpression'  &&  ast.object.name === 'configs') {
+    ast.object.name = '${config'
+    ast.property.name += '}'
   }
 
-  if (ast.type === 'ExpressionStatement') {
-    walkAst(ast.expression)
-  }
-
-  if (ast.type === 'AssignmentExpression') {
-    walkAst(ast.right)
-  }
-
-  if (ast.type === 'CallExpression') {
-    for (const arg of ast.arguments) {
-      walkAst(arg)
-    }
-
-    walkAst(ast.arguments)
-  }
-
-  if (ast.type === 'ObjectExpression') {
-    for (const prop of ast.properties) {
-      walkAst(prop)
-    }
-
-    return
-  }
-
-  if (ast.type === 'Property') {
-    if (ast.value.type === 'MemberExpression' &&  ast.value.object.name === 'configs') {
-      ast.value.object.name = '${config'
-      ast.value.property.name += '}'
-    }
-
-    return
-  }
-
-
-  if (!('body' in ast)) {
-    return
-  }
-
-  if (!Array.isArray(ast.body)) {
-    walkAst(ast.body)
-
-    return
-  }
-
-  // if ast is a ClassBody, remove methods that are mocked for the template
-  // also add the methods as expressions within a template literal
-  // identifier type as this will be parsed to a string
   if (ast.type === 'ClassBody') {
     ast.body = ast.body.filter((node) => {
       if (node.type === 'MethodDefinition' && node.kind === 'method') {
@@ -130,17 +84,19 @@ const walkAst = (ast) => {
       return true
     })
 
-    for (const node of ast.body) {
-      walkAst(node)
-    }
-
     ast.body.push(createExpressionStatementIdentifier('${methods}'))
-
-    return
   }
 
-  for (const node of ast.body) {
-    walkAst(node)
+  for (const key in ast) {
+    const value = ast[key]
+
+    if (Array.isArray(value)) {
+      for (const node of value) {
+        walkAst(node)
+      }
+    } else if (value && typeof value === 'object' && 'type' in value && typeof value.type === 'string') {
+      walkAst(value)
+    }
   }
 }
 
