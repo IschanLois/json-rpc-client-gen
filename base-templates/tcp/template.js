@@ -1,10 +1,11 @@
 import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
+import { configs } from './configs.js'
 import JsonRpcError from './jsonRpcError.js'
 
-const SOCKET_TIMEOUT = 360000
-const VERSION = '2.0'
+const SOCKET_TIMEOUT = configs.socketTimeout
+const VERSION = configs.version
 
 class Stub extends EventEmitter {
 
@@ -99,7 +100,7 @@ class Stub extends EventEmitter {
   }
 
   connect() {
-    this.#socket = connect({ host: 'localhost', port: 25 })
+    this.#socket = connect({ host: configs.host, port: configs.port })
 
     this.#socket.on('data', (data) => {
       this.#parsePendingResponses(data)
@@ -113,7 +114,7 @@ class Stub extends EventEmitter {
     const connectionTimeout = setTimeout(() => {
       this.#socket.destroy()
       this.emit('error', new Error('TCP handshake timeout'))
-    }, 360000)
+    }, configs.connectionTimeout)
 
     this.#socket.once('connect', () => {
       clearTimeout(connectionTimeout)

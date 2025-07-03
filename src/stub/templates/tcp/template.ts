@@ -1,85 +1,19 @@
 
   export const template = `import EventEmitter from 'node:events';
 import {connect} from 'node:net';
+import {configs} from './configs.js';
 import JsonRpcError from './jsonRpcError.js';
-const SOCKET_TIMEOUT = 360000;
-const VERSION = '2.0';
+const SOCKET_TIMEOUT = configs.socketTimeout;
+const VERSION = configs.version;
 class Stub extends EventEmitter {
   #socket = null;
   #currentRequestId = 0;
   #requestHandlers = new Map();
   #pendingResponses = [''];
-  #handleResponse(parsedResponse) {
-    const {id, result, error} = parsedResponse;
-    if (id === null) {
-      return;
-    }
-    const requestHandler = this.#requestHandlers.get(id);
-    if (!requestHandler) {
-      return;
-    }
-    this.#requestHandlers.delete(id);
-    if (error) {
-      const rpcError = new JsonRpcError(error.code, error.message, error.data);
-      requestHandler.reject(rpcError);
-    } else {
-      requestHandler.resolve(result);
-      setImmediate(() => {
-        this.emit('data', parsedResponse);
-      });
-    }
-  }
-  #parsePendingResponses(data) {
-    const serverData = data.toString().split('\n');
-    this.#pendingResponses[0] += serverData.shift();
-    this.#pendingResponses.push(...serverData);
-    while (this.#pendingResponses.length > 1) {
-      const rawResponse = this.#pendingResponses.shift();
-      let parsedResponse;
-      try {
-        parsedResponse = JSON.parse(rawResponse);
-      } catch {
-        setImmediate(() => {
-          this.emit('error', new Error(`Malformed server response ${rawResponse}`));
-        });
-        continue;
-      }
-      if (Array.isArray(parsedResponse)) {
-        parsedResponse.forEach(response => {
-          this.#handleResponse(response);
-        });
-      } else {
-        this.#handleResponse(parsedResponse);
-      }
-    }
-  }
-  #sendRequest(method, params = {}, isNotification = false) {
-    if (!this.#socket || this.#socket.destroyed) {
-      this.connect();
-    }
-    const requestId = isNotification ? null : this.#currentRequestId;
-    const message = JSON.stringify({
-      id: requestId,
-      jsonrpc: VERSION,
-      method,
-      params
-    });
-    this.#currentRequestId += 1;
-    this.#socket.write(`${message}\n`);
-    if (requestId === null) {
-      return null;
-    }
-    return new Promise((resolve, reject) => {
-      this.#requestHandlers.set(requestId, {
-        resolve,
-        reject
-      });
-    });
-  }
   connect() {
     this.#socket = connect({
-      host: 'localhost',
-      port: 25
+      host: configs.host,
+      port: configs.port
     });
     this.#socket.on('data', data => {
       this.#parsePendingResponses(data);
@@ -91,7 +25,7 @@ class Stub extends EventEmitter {
     const connectionTimeout = setTimeout(() => {
       this.#socket.destroy();
       this.emit('error', new Error('TCP handshake timeout'));
-    }, 360000);
+    }, configs.connectionTimeout);
     this.#socket.once('connect', () => {
       clearTimeout(connectionTimeout);
       this.#socket.setTimeout(SOCKET_TIMEOUT || 0, () => {
@@ -108,27 +42,6 @@ class Stub extends EventEmitter {
       return;
     }
     this.#socket.destroy();
-  }
-  addTodo(title, description) {
-    return this.#sendRequest('addTodo', {
-      title,
-      description
-    });
-  }
-  getTodos() {
-    return this.#sendRequest('getTodos');
-  }
-  deleteTodo(id) {
-    return this.#sendRequest('deleteTodo', {
-      id
-    });
-  }
-  updateTodo(id, title, description) {
-    return this.#sendRequest('updateTodo', {
-      id,
-      title,
-      description
-    });
   }
   batch(requests) {
     if (!Array.isArray(requests)) {
@@ -169,6 +82,7 @@ class Stub extends EventEmitter {
     this.#socket.write(`${JSON.stringify(messages)}\n`);
     return handlers;
   }
+  ${methods};
 }
 const clientStub = new Stub();
 export default clientStub;

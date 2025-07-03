@@ -54,6 +54,48 @@ const processArguments = () => {
   }
 }
 
+const templateMethods = new Set(['#handleResponse', '#parsePendingResponses', '#sendRequest', 'connect', 'close', 'batch'])
+
+const walkAst = (ast) => {
+  if (!('body' in ast)) {
+    return
+  }
+
+  if (!Array.isArray(ast.body)) {
+    if (ast.type === 'ClassDeclaration') {
+      walkAst(ast.body)
+    }
+
+    return
+  }
+
+  // if ast is a ClassBody, remove methods that are mocked for the template
+  // add the methods as expressions within a template literal
+  // identifier type as this will be parsed to a string
+  if (ast.type === 'ClassBody') {
+    ast.body = ast.body.filter((node) => {
+      if (node.type === 'MethodDefinition' && node.kind === 'method') {
+        return templateMethods.has(node.key.name)
+      }
+      return true
+    })
+
+    ast.body.push({
+      type: 'ExpressionStatement',
+      expression: {
+        type: 'Identifier',
+        name: '${methods}',
+      },
+    })
+    return
+  }
+
+
+  for (const node of ast.body) {
+    walkAst(node)
+  }
+}
+
 const main = () => {
   processArguments()
 
@@ -64,6 +106,10 @@ const main = () => {
     ecmaVersion: 2022,
     sourceType: 'module',
   })
+
+  console.log(ast)
+
+  walkAst(ast)
 
   const template = `
   export const template = \`${toJs(ast).value}\`

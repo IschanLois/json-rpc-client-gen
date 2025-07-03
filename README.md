@@ -1,4 +1,4 @@
-# json-rcp-client-gen
+# json-rpc-client-gen
 
 A `Node` client stub generator for [JSON-RPC](https://www.jsonrpc.org/specification) Systems
 
