@@ -56,40 +56,88 @@ const processArguments = () => {
 
 const templateMethods = new Set(['#handleResponse', '#parsePendingResponses', '#sendRequest', 'connect', 'close', 'batch'])
 
+/**
+ * Use this to create a statement for a template. This removes the quotes when encoding a source code to a string
+ * @param {string} name - the actual identifier that
+ * @returns {Object} - an ExpressionStatement AST node
+ */
+const createExpressionStatementIdentifier = (name) => ({
+  type: 'ExpressionStatement',
+  expression: {
+    type: 'Identifier',
+    name: name,
+  },
+})
+
 const walkAst = (ast) => {
-  if (!('body' in ast)) {
-    return
+  if (ast.type === 'MethodDefinition') {
+    walkAst(ast.value)
   }
 
-  if (!Array.isArray(ast.body)) {
-    if (ast.type === 'ClassDeclaration') {
-      walkAst(ast.body)
+  if (ast.type === 'ExpressionStatement') {
+    walkAst(ast.expression)
+  }
+
+  if (ast.type === 'AssignmentExpression') {
+    walkAst(ast.right)
+  }
+
+  if (ast.type === 'CallExpression') {
+    for (const arg of ast.arguments) {
+      walkAst(arg)
+    }
+
+    walkAst(ast.arguments)
+  }
+
+  if (ast.type === 'ObjectExpression') {
+    for (const prop of ast.properties) {
+      walkAst(prop)
     }
 
     return
   }
 
+  if (ast.type === 'Property') {
+    if (ast.value.type === 'MemberExpression' &&  ast.value.object.name === 'configs') {
+      ast.value.object.name = '${config'
+      ast.value.property.name += '}'
+    }
+
+    return
+  }
+
+
+  if (!('body' in ast)) {
+    return
+  }
+
+  if (!Array.isArray(ast.body)) {
+    walkAst(ast.body)
+
+    return
+  }
+
   // if ast is a ClassBody, remove methods that are mocked for the template
-  // add the methods as expressions within a template literal
+  // also add the methods as expressions within a template literal
   // identifier type as this will be parsed to a string
   if (ast.type === 'ClassBody') {
     ast.body = ast.body.filter((node) => {
       if (node.type === 'MethodDefinition' && node.kind === 'method') {
         return templateMethods.has(node.key.name)
       }
+
       return true
     })
 
-    ast.body.push({
-      type: 'ExpressionStatement',
-      expression: {
-        type: 'Identifier',
-        name: '${methods}',
-      },
-    })
+    for (const node of ast.body) {
+      walkAst(node)
+    }
+
+    ast.body.push(createExpressionStatementIdentifier('${methods}'))
+
     return
   }
-
 
   for (const node of ast.body) {
     walkAst(node)
@@ -106,8 +154,6 @@ const main = () => {
     ecmaVersion: 2022,
     sourceType: 'module',
   })
-
-  console.log(ast)
 
   walkAst(ast)
 

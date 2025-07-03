@@ -12,8 +12,8 @@ class Stub extends EventEmitter {
   #pendingResponses = [''];
   connect() {
     this.#socket = connect({
-      host: configs.host,
-      port: configs.port
+      host: ${config.host},
+      port: ${config.port}
     });
     this.#socket.on('data', data => {
       this.#parsePendingResponses(data);
