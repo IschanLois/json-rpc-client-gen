@@ -54,7 +54,7 @@ const processArguments = () => {
   }
 }
 
-const templateMethods = new Set(['#handleResponse', '#parsePendingResponses', '#sendRequest', 'connect', 'close', 'batch'])
+const templateMethods = new Set(['handleResponse', 'parsePendingResponses', 'sendRequest', 'connect', 'close', 'batch'])
 
 /**
  * Use this to create a statement for a template. This removes the quotes when encoding a source code to a string
@@ -71,8 +71,8 @@ const createExpressionStatementIdentifier = (name) => ({
 
 const walkAst = (ast) => {
   if (ast.type === 'MemberExpression'  &&  ast.object.name === 'configs') {
-    ast.object.name = '${config'
-    ast.property.name += '}'
+    ast.object.name = '{{config'
+    ast.property.name += '}}'
   }
 
   if (ast.type === 'ClassBody') {
@@ -84,9 +84,20 @@ const walkAst = (ast) => {
       return true
     })
 
-    ast.body.push(createExpressionStatementIdentifier('${methods}'))
+    ast.body.push(createExpressionStatementIdentifier('{{methods}}'))
   }
 
+  if (ast.type === 'Program') {
+    ast.body = ast.body.filter((node) => {
+      if (node.type === 'ImportDeclaration') {
+        return node.source.value !== './configs.js'
+      }
+
+      return true
+    })
+  }
+
+  // actual AST traversal, the conditions above are the use case specific modification
   for (const key in ast) {
     const value = ast[key]
 
@@ -113,9 +124,20 @@ const main = () => {
 
   walkAst(ast)
 
-  const template = `
-  export const template = \`${toJs(ast).value}\`
-  `
+  // Since the source code will be parsed to a template string, replace actual carriage returns and
+  // template expressions with escaped versions.
+  const sourceCode = toJs(ast).value
+    .replace(/(`.*\${.*}.*`)|(\\n)/g, (match) => {
+      if (match === '\\n') {
+        return '\\\\n'
+      }
+      const normalized = match
+        .split('${')
+        .join('\\${')
+      return `\\\`${normalized.substring(1, normalized.length - 1)}\\\``
+    })
+
+  const template = `export const template = \`${sourceCode}\``
 
   const targetDir = normalize(`${import.meta.dirname}/../src/stub/templates/${config.template}`)
   writeFileSync(

@@ -2,11 +2,13 @@ import EventEmitter from 'node:events'
 import { connect } from 'node:net'
 
 import { configs } from './configs.js'
-import JsonRpcError from './jsonRpcError.js'
+import { JsonRpcError } from './jsonRpcError.js'
 
 const SOCKET_TIMEOUT = configs.socketTimeout
 const VERSION = configs.version
 
+// TODO support multiple sockets and throttling if limited sockets
+// TODO circular IDs
 class Stub extends EventEmitter {
 
   #socket = null
