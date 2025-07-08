@@ -1,6 +1,6 @@
 {
   "name": "json-rpc-client-gen",
-  "version": "1.0.0-beta.0",
+  "version": "1.0.0-beta.1",
   "description": "A Node client stub generator for JSON-RPC systems",
   "main": "index.js",
   "scripts": {
