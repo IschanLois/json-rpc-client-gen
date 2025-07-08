@@ -1,6 +1,9 @@
 import stub from './client-stub/index.js'
 
 stub.on('connect', async () => {
+  stub.on('data', (data) => {
+    console.log('data', data)
+  })
   console.log('Connected to the Todo RPC server')
 
   try {

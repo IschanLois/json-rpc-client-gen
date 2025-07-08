@@ -1,3 +1,7 @@
+/**
+ * This is a script that generates the template source code for a stub based on a specified template (i.e. 'tcp').
+ */
+
 import path, { normalize } from 'node:path'
 
 import { readFileSync, writeFileSync } from 'fs'

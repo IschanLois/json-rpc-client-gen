@@ -1,4 +1,5 @@
-import { writeFile } from 'node:fs'
+import { writeFile, readdir, copyFile } from 'node:fs/promises'
+import { join, dirname } from 'node:path'
 
 import { getTcpTemplate } from './templates/tcp/index.js'
 import type { Config, ConfigFunctionSignature } from '../types.js'
@@ -23,7 +24,7 @@ const appendMethod = (
 }
 
 // TODO: add TLS support
-export const generateClientStub = (config: Config, target: string, functions: ConfigFunctionSignature): void => {
+export const generateClientStub = async (config: Config, targetFile: string, functions: ConfigFunctionSignature): Promise<void> => {
 
   const methods: string = Object
     .entries(functions)
@@ -40,7 +41,28 @@ export const generateClientStub = (config: Config, target: string, functions: Co
     ...config,
   }, methods)
 
-  writeFile(target, template, () => {
-    console.log('successfully written client stub.')
-  })
+  const targetDir = dirname(targetFile)
+
+  const copyFiles = (await readdir(join(import.meta.dirname, 'templates', 'tcp')))
+    .reduce<Promise<void>[]>((allDeps: Promise<void>[], dep) => {
+      if (['index.js', 'template.js'].includes(dep)) {
+        return allDeps
+      }
+
+      allDeps.push(copyFile(
+        join(import.meta.dirname, 'templates', 'tcp', dep),
+        join(targetDir, dep),
+      ))
+
+      return allDeps
+    },
+    [],
+  )
+
+  await Promise.all([
+    writeFile(targetFile, template).then(() => { console.log('✅ successfully created client stub') }),
+    copyFiles,
+  ])
+
+  console.log('✅ successfully copied dependencies')
 }
