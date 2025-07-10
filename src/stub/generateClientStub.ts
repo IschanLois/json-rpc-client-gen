@@ -19,7 +19,7 @@ const appendMethod = (
   return `${currentMethodsString}
 
   ${functionName}(${stringParams}) {
-    return this.#sendRequest('${functionName}'${sendReqParams})
+    return this.#connection.sendRequest('${functionName}'${sendReqParams})
   }`
 }
 

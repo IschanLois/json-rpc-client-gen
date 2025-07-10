@@ -48,7 +48,7 @@ const handleRequest = (parsedRequest) => {
     message = {
       id,
       method,
-      result: functions[method](...Object.values(params)),
+      result: functions[method](...(params ? Object.values(params) : [])),
       error: null,
     }
   } catch (error) {
@@ -73,8 +73,9 @@ const parseRequests = (data) => {
   requests.push(...rawRequests)
 
   while (requests.length > 1) {
-    console.log(`Received request: ${requests[0]}`)
     const parsedRequest = JSON.parse(requests.shift())
+
+    console.log('Received request:', parsedRequest)
 
     if (Array.isArray(parsedRequest)) {
       const message = parsedRequest.map((request) => {

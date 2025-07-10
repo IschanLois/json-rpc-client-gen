@@ -1,4 +1,4 @@
-export const configs = {
+export const config = {
   version: '2.0',
   host: 'localhost',
   port: 25,

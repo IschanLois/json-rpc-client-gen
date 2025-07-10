@@ -1,0 +1,1 @@
+export { generateClientStub } from './generateClientStub.js'

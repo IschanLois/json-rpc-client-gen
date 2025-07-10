@@ -4,6 +4,7 @@ stub.on('connect', async () => {
   stub.on('data', (data) => {
     console.log('data', data)
   })
+
   console.log('Connected to the Todo RPC server')
 
   try {
@@ -25,8 +26,6 @@ stub.on('connect', async () => {
       { method: 'getTodos' },
     ]))
 
-    console.log(ans)
-
     console.log(await stub.getTodos())
   } catch (err) {
     console.log(err)
@@ -39,3 +38,4 @@ stub.on('connect', async () => {
 })
 
 stub.connect()
+

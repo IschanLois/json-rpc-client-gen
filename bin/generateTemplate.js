@@ -74,7 +74,7 @@ const createExpressionStatementIdentifier = (name) => ({
 })
 
 const walkAst = (ast) => {
-  if (ast.type === 'MemberExpression'  &&  ast.object.name === 'configs') {
+  if (ast.type === 'MemberExpression'  &&  ast.object.name === 'config') {
     ast.object.name = '{{config'
     ast.property.name += '}}'
   }
@@ -94,7 +94,7 @@ const walkAst = (ast) => {
   if (ast.type === 'Program') {
     ast.body = ast.body.filter((node) => {
       if (node.type === 'ImportDeclaration') {
-        return node.source.value !== './configs.js'
+        return node.source.value !== './config.js'
       }
 
       return true

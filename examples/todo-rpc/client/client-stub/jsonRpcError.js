@@ -24,5 +24,7 @@ export class JsonRpcError extends Error {
 
     this.data = data || null
     this.code = code || -32603
+
+    return this
   }
 }

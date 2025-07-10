@@ -9,7 +9,7 @@ export interface TcpConfig {
 }
 
 export const getTcpTemplate = (config: TcpConfig, methods: string): string => template
-  .replace(/{{.*}}/g, (match) => {
+  .replace(/{{[a-zA-Z.]+}}/g, (match) => {
     if (match === '{{methods}}') {
       return methods
     }
