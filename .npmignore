@@ -3,3 +3,5 @@
 /node_modules
 /*.json
 /*.{mjs,js}
+/bin
+/base-templates
