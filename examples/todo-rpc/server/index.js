@@ -42,6 +42,19 @@ let currentSocket = null
 const handleRequest = (parsedRequest) => {
   const { id, method, params } = parsedRequest
 
+  if (method in functions === false) {
+    return {
+      id,
+      method,
+      result: null,
+      error: {
+        code: -32601,
+        message: 'Method not found',
+        data: { method },
+      },
+    }
+  }
+
   let message
 
   try {

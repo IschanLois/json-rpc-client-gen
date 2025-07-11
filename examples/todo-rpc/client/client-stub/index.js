@@ -28,20 +28,20 @@ class Stub extends EventEmitter {
   batch(requests) {
     return this.#connection.sendBatch(requests);
   }
-  addTodo(title, description) {
-    return this.#connection.sendRequest('addTodo', { title, description })
+  addTodo(title, description, isNotification) {
+    return this.#connection.sendRequest('addTodo', { title, description }, isNotification)
   }
 
-  getTodos() {
-    return this.#connection.sendRequest('getTodos')
+  getTodos(isNotification) {
+    return this.#connection.sendRequest('getTodos', null, isNotification)
   }
 
-  deleteTodo(id) {
-    return this.#connection.sendRequest('deleteTodo', { id })
+  deleteTodo(id, isNotification) {
+    return this.#connection.sendRequest('deleteTodo', { id }, isNotification)
   }
 
-  updateTodo(id, title, description) {
-    return this.#connection.sendRequest('updateTodo', { id, title, description })
+  updateTodo(id, title, description, isNotification) {
+    return this.#connection.sendRequest('updateTodo', { id, title, description }, isNotification)
   };
 }
 const clientStub = new Stub();

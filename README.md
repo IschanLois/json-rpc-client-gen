@@ -117,7 +117,7 @@ const [res1, res2] = await stub.batch([
 
 ### Promise batching vs Batch method
 - Promise batching will send the requests to the server one-by-one in a concurrent manner.
-- `batch` method will send the requests to the server in an array. This returns an a list of promises.
+- `batch` method will send the requests to the server in an array. This returns a list of promises.
 
 **batch method param**
 ```JavaScript
@@ -126,7 +126,7 @@ const [res1, res2] = await stub.batch([
  */
 {
    method: 'method1', // string
-   params: { param1: 'param1' }, // object of parameters for the RPC
+   params: { param1: 'param1' }, // object of parameters for the RPC, can also be an array for positional arguments
    isNotification: true // whether the RPC is a notification
 }
 ```

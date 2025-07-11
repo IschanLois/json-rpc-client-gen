@@ -142,7 +142,6 @@ export class JsonRpcConnection extends Socket {
     })
   }
 
-  // TODO fix checking of methods
   /**
    * @param {Object[]} requests - Array of request objects that will be batched
    * @param {string} requests[i].method - The method to call
@@ -165,10 +164,6 @@ export class JsonRpcConnection extends Socket {
     requests.forEach((request) => {
       if (typeof request.method !== 'string') {
         throw new Error('parameter method must be a string')
-      }
-
-      if (!(request.method in this)) {
-        throw new Error(`invalid method ${request.method} in batch request`)
       }
 
       if ('isNotification' in request && typeof request.isNotification !== 'boolean') {

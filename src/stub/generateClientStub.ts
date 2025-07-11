@@ -13,13 +13,13 @@ const appendMethod = (
   functionName: string,
   parameters: string[],
 ): string => {
-  const stringParams: string = parameters.join(', ')
-  const sendReqParams = parameters.length > 0 ? `, { ${stringParams} }` : ''
+  const stringParams: string = [...parameters, 'isNotification'].join(', ')
+  const sendReqParams = parameters.length > 0 ? `, { ${parameters.join(', ')} }` : ', null'
 
   return `${currentMethodsString}
 
   ${functionName}(${stringParams}) {
-    return this.#connection.sendRequest('${functionName}'${sendReqParams})
+    return this.#connection.sendRequest('${functionName}'${sendReqParams}, isNotification)
   }`
 }
 

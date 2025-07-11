@@ -166,10 +166,6 @@ export class JsonRpcConnection extends Socket {
         throw new Error('parameter method must be a string')
       }
 
-      if (!(request.method in this)) {
-        throw new Error(`invalid method ${request.method} in batch request`)
-      }
-
       if ('isNotification' in request && typeof request.isNotification !== 'boolean') {
         throw new Error('parameter isNotification must be a boolean')
       }
